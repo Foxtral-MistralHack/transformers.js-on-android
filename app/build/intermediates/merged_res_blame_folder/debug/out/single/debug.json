@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.trajoid.app-merged_res-33:/layout_activity_main.xml.flat",
+        "source": "com.trajoid.app-main-35:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.trajoid.app-merged_res-33:/layout_item_chat_message.xml.flat",
+        "source": "com.trajoid.app-main-35:/layout/item_chat_message.xml"
+    }
+]

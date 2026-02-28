@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Trajoid Engine</title>
+</head>
+
+<script type="module">
+    import { Wllama } from 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/index.js';
+
+    let wllamaObj = null;
+
+    async function init() {
+        Android.onLog("Initializing wllama with GGUF...");
+        try {
+            wllamaObj = new Wllama({
+                'single-thread/wllama.js': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/single-thread/wllama.js',
+                'single-thread/wllama.wasm': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/single-thread/wllama.wasm',
+                'multi-thread/wllama.js': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/multi-thread/wllama.js',
+                'multi-thread/wllama.worker.mjs': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/multi-thread/wllama.worker.mjs',
+                'multi-thread/wllama.wasm': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/multi-thread/wllama.wasm',
+            });
+
+            const modelUrl = 'https://appassets.androidplatform.net/sdcard/Download/qwen1_5-0_5b-chat-q2_k.gguf';
+
+            Android.onLog("Loading model from: " + modelUrl);
+            await wllamaObj.loadModelFromUrl(modelUrl, {
+                progressCallback: ({ loaded, total }) => {
+                    if (total > 0) {
+                        Android.onLog(`Loading model... ${Math.round(loaded / total * 100)}%`);
+                    }
+                }
+            });
+            Android.onLog("Model loaded successfully.");
+        } catch (e) {
+            Android.onLog("Init Error: " + e.message + "\\n" + e.stack);
+            Android.onMessageReceived("Error initializing model: " + e.message);
+        }
+    }
+
+    window.generateText = async function (prompt) {
+        if (!wllamaObj) {
+            Android.onMessageReceived("Error: Model not loaded yet.");
+            return;
+        }
+        Android.onLog("Generating for prompt: " + prompt);
+        try {
+            // Apply ChatML format for Qwen
+            const formattedPrompt = `<|im_start|>user\\n${prompt}<|im_end|>\\n<|im_start|>assistant\\n`;
+
+            const output = await wllamaObj.createCompletion(formattedPrompt, {
+                nPredict: 50,
+                sampling: {
+                    temp: 0.7,
+                }
+            });
+            Android.onLog("Output: " + output);
+            Android.onMessageReceived(output);
+        } catch (e) {
+            Android.onLog("Generate Error: " + e.message);
+            Android.onMessageReceived("Error: " + e.message);
+        }
+    };
+
+    init();
+</script>
+</body>
+
+</html>
