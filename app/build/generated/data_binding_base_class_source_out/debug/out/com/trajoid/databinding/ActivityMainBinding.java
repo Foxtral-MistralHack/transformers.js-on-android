@@ -5,16 +5,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.trajoid.R;
+import com.trajoid.WaveformView;
 import java.lang.NullPointerException;
 import java.lang.Override;
 import java.lang.String;
@@ -24,29 +25,34 @@ public final class ActivityMainBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final Button buttonSend;
-
-  @NonNull
-  public final EditText editTextMessage;
+  public final AppBarLayout appBarLayout;
 
   @NonNull
   public final WebView hiddenWebView;
 
   @NonNull
-  public final LinearLayout linearLayout;
-
-  @NonNull
   public final RecyclerView recyclerView;
 
-  private ActivityMainBinding(@NonNull ConstraintLayout rootView, @NonNull Button buttonSend,
-      @NonNull EditText editTextMessage, @NonNull WebView hiddenWebView,
-      @NonNull LinearLayout linearLayout, @NonNull RecyclerView recyclerView) {
+  @NonNull
+  public final TextView textViewSpeakNow;
+
+  @NonNull
+  public final MaterialToolbar topAppBar;
+
+  @NonNull
+  public final WaveformView waveformView;
+
+  private ActivityMainBinding(@NonNull ConstraintLayout rootView,
+      @NonNull AppBarLayout appBarLayout, @NonNull WebView hiddenWebView,
+      @NonNull RecyclerView recyclerView, @NonNull TextView textViewSpeakNow,
+      @NonNull MaterialToolbar topAppBar, @NonNull WaveformView waveformView) {
     this.rootView = rootView;
-    this.buttonSend = buttonSend;
-    this.editTextMessage = editTextMessage;
+    this.appBarLayout = appBarLayout;
     this.hiddenWebView = hiddenWebView;
-    this.linearLayout = linearLayout;
     this.recyclerView = recyclerView;
+    this.textViewSpeakNow = textViewSpeakNow;
+    this.topAppBar = topAppBar;
+    this.waveformView = waveformView;
   }
 
   @Override
@@ -76,15 +82,9 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.buttonSend;
-      Button buttonSend = ViewBindings.findChildViewById(rootView, id);
-      if (buttonSend == null) {
-        break missingId;
-      }
-
-      id = R.id.editTextMessage;
-      EditText editTextMessage = ViewBindings.findChildViewById(rootView, id);
-      if (editTextMessage == null) {
+      id = R.id.appBarLayout;
+      AppBarLayout appBarLayout = ViewBindings.findChildViewById(rootView, id);
+      if (appBarLayout == null) {
         break missingId;
       }
 
@@ -94,20 +94,32 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.linearLayout;
-      LinearLayout linearLayout = ViewBindings.findChildViewById(rootView, id);
-      if (linearLayout == null) {
-        break missingId;
-      }
-
       id = R.id.recyclerView;
       RecyclerView recyclerView = ViewBindings.findChildViewById(rootView, id);
       if (recyclerView == null) {
         break missingId;
       }
 
-      return new ActivityMainBinding((ConstraintLayout) rootView, buttonSend, editTextMessage,
-          hiddenWebView, linearLayout, recyclerView);
+      id = R.id.textViewSpeakNow;
+      TextView textViewSpeakNow = ViewBindings.findChildViewById(rootView, id);
+      if (textViewSpeakNow == null) {
+        break missingId;
+      }
+
+      id = R.id.topAppBar;
+      MaterialToolbar topAppBar = ViewBindings.findChildViewById(rootView, id);
+      if (topAppBar == null) {
+        break missingId;
+      }
+
+      id = R.id.waveformView;
+      WaveformView waveformView = ViewBindings.findChildViewById(rootView, id);
+      if (waveformView == null) {
+        break missingId;
+      }
+
+      return new ActivityMainBinding((ConstraintLayout) rootView, appBarLayout, hiddenWebView,
+          recyclerView, textViewSpeakNow, topAppBar, waveformView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

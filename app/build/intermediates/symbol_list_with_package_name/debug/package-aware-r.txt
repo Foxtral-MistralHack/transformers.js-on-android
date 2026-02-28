@@ -3163,6 +3163,7 @@ id animateToEnd
 id animateToStart
 id antiClockwise
 id anticipate
+id appBarLayout
 id arc
 id asConfigured
 id async
@@ -3182,7 +3183,6 @@ id bounceBoth
 id bounceEnd
 id bounceStart
 id buttonPanel
-id buttonSend
 id cache_measures
 id callMeasure
 id cancel_button
@@ -3255,7 +3255,6 @@ id easeInOut
 id easeOut
 id east
 id edge
-id editTextMessage
 id edit_query
 id edit_text_id
 id elastic
@@ -3325,7 +3324,6 @@ id legacy
 id line1
 id line3
 id linear
-id linearLayout
 id listMode
 id list_item
 id m3_side_sheet
@@ -3539,6 +3537,7 @@ id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
 id textTop
+id textViewSpeakNow
 id text_input_end_icon
 id text_input_error_icon
 id text_input_start_icon
@@ -3554,6 +3553,7 @@ id titleDividerNoCustom
 id title_template
 id toggle
 id top
+id topAppBar
 id topPanel
 id touch_outside
 id transitionToEnd
@@ -3578,6 +3578,7 @@ id view_tree_saved_state_registry_owner
 id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
+id waveformView
 id west
 id withText
 id with_icon

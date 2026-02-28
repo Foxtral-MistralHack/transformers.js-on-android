@@ -1,10 +1,14 @@
 [
     {
-        "merged": "com.trajoid.app-mergeDebugResources-32:/layout/item_chat_message.xml",
-        "source": "com.trajoid.app-main-35:/layout/item_chat_message.xml"
+        "merged": "/Users/nicolasraoul/.gradle/daemon/8.13/com.trajoid.app-mergeDebugResources-32:/layout/activity_main.xml",
+        "source": "/Users/nicolasraoul/.gradle/daemon/8.13/com.trajoid.app-main-35:/layout/activity_main.xml"
     },
     {
         "merged": "com.trajoid.app-mergeDebugResources-32:/layout/activity_main.xml",
         "source": "com.trajoid.app-main-35:/layout/activity_main.xml"
+    },
+    {
+        "merged": "/Users/nicolasraoul/.gradle/daemon/8.13/com.trajoid.app-mergeDebugResources-32:/layout/item_chat_message.xml",
+        "source": "/Users/nicolasraoul/.gradle/daemon/8.13/com.trajoid.app-main-35:/layout/item_chat_message.xml"
     }
 ]

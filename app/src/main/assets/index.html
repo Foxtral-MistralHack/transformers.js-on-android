@@ -1,70 +1,165 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="utf-8">
-    <title>Trajoid Engine</title>
+    <title>Trajoid App</title>
 </head>
+<body>
+    <script type="module">
+                                                            window.onerror = function (message, source, lineno, colno, error) {
+                                                                if (window.Android) {
+                                                                    Android.onLog("GLOBAL_ERROR: " + message + " at " + source + ":" + lineno);
+                                                                }
+                                                                return true;
+                                                            };
 
-<script type="module">
-    import { Wllama } from 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/index.js';
+                                            const originalConsoleError = console.error;
+                                            console.error = function () {
+                                                if (window.Android) Android.onLog("[WebView DOM Error] " + Array.from(arguments).join(' '));
+                                                originalConsoleError.apply(console, arguments);
+                                            };
+                                            const originalConsoleWarn = console.warn;
+                                            console.warn = function () {
+                                                if (window.Android) Android.onLog("[WebView DOM Warn] " + Array.from(arguments).join(' '));
+                                                originalConsoleWarn.apply(console, arguments);
+                                            };
+                                            const originalConsoleLog = console.log;
+                                            console.log = function () {
+                                                if (window.Android) Android.onLog("[WebView DOM Log] " + Array.from(arguments).join(' '));
+                                                originalConsoleLog.apply(console, arguments);
+                                            };
 
-    let wllamaObj = null;
+                                                            let audioBuffer = new Float32Array(0);
+                                                            let worker = null;
+                                                            let isProcessing = false;
 
-    async function init() {
-        Android.onLog("Initializing wllama with GGUF...");
+                                                            async function initModel() {
+                                                                try {
+                                                                // Initialize the worker using classic script
+                                                                try {
+                                                                    worker = new Worker('worker.js');
+
+                                                                    worker.onerror = function (err) {
+                                                                        Android.onLog("[Worker Error Event] " + err.message + " in " + err.filename + ":" + err.lineno);
+                                                                    };
+                                                                } catch (err) {
+                                                                    Android.onLog("[Worker Init Exception] " + err.message);
+                                                                }
+                                                                // Mount message listeners from the worker
+                                                                worker.addEventListener('message', (e) => {
+                                                                    const data = e.data;
+                                                                    switch (data.status) {
+                                                                        case 'log':
+                                                                            Android.onLog("[Worker] " + data.message);
+                                                                            break;
+                                                                        case 'ready':
+                                                                            Android.onLog("[Worker] Voxtral ONNX model initialized successfully.");
+                                                                            Android.onModelReady();
+                                                                            break;
+                                                                        case 'error':
+                                                                            Android.onLog("[Worker Error] " + data.error);
+                                                                            isProcessing = false;
+                                                                            break;
+                                                                        case 'result':
+                                                                            // Inference resolved successfully
+                                                                            const resultText = data.text;
+                                                                            Android.onLog("[Worker] Decoded text: " + resultText);
+                                                                            const cleanText = resultText.replace(/\[.*?\]/g, '').trim();
+                                                                            if (cleanText && cleanText.length > 0) {
+                                                                                Android.onMessageReceived("Me: " + cleanText);
+                                                                            }
+                                                                            isProcessing = false;
+                                                                            break;
+                                                                        default:
+                                                                            break;
+                                                                    }
+                                                                });
+
+                                                                const modelPath = 'https://appassets.androidplatform.net/sdcard/Download/';
+                                                                const modelId = 'whisper_onnx';
+
+                                                                Android.onLog("Instructing worker to initialize model...");
+                                                                worker.postMessage({
+                                                                    action: 'initialize',
+                                                                    payload: { modelPath, modelId }
+                                                                });
+
+                                                            } catch (e) {
+                                                                Android.onLog("Worker Init Error: " + (e.message || e));
+                                                            }
+                                                        }
+
+    // Called from Kotlin repeatedly with new audio chunks
+    window.receiveAudioChunk = (base64AudioData) => {
         try {
-            wllamaObj = new Wllama({
-                'single-thread/wllama.js': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/single-thread/wllama.js',
-                'single-thread/wllama.wasm': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/single-thread/wllama.wasm',
-                'multi-thread/wllama.js': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/multi-thread/wllama.js',
-                'multi-thread/wllama.worker.mjs': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/multi-thread/wllama.worker.mjs',
-                'multi-thread/wllama.wasm': 'https://cdn.jsdelivr.net/npm/@wllama/wllama/esm/multi-thread/wllama.wasm',
-            });
+            const binaryString = atob(base64AudioData);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            const newFloats = new Float32Array(bytes.buffer);
 
-            const modelUrl = 'https://appassets.androidplatform.net/sdcard/Download/qwen1_5-0_5b-chat-q2_k.gguf';
+            // Append new array
+            const merged = new Float32Array(audioBuffer.length + newFloats.length);
+            merged.set(audioBuffer);
+            merged.set(newFloats, audioBuffer.length);
+            audioBuffer = merged;
 
-            Android.onLog("Loading model from: " + modelUrl);
-            await wllamaObj.loadModelFromUrl(modelUrl, {
-                progressCallback: ({ loaded, total }) => {
-                    if (total > 0) {
-                        Android.onLog(`Loading model... ${Math.round(loaded / total * 100)}%`);
-                    }
-                }
-            });
-            Android.onLog("Model loaded successfully.");
         } catch (e) {
-            Android.onLog("Init Error: " + e.message + "\\n" + e.stack);
-            Android.onMessageReceived("Error initializing model: " + e.message);
+            Android.onLog("JS process error: " + e.message);
         }
-    }
+                                                                    };
 
-    window.generateText = async function (prompt) {
-        if (!wllamaObj) {
-            Android.onMessageReceived("Error: Model not loaded yet.");
-            return;
-        }
-        Android.onLog("Generating for prompt: " + prompt);
-        try {
-            // Apply ChatML format for Qwen
-            const formattedPrompt = `<|im_start|>user\\n${prompt}<|im_end|>\\n<|im_start|>assistant\\n`;
+                                                                    // Continually poll the audioBuffer on the main thread and feed it to the worker
+                                                                    setInterval(() => {
+                                                                        if (!worker) {
+                                                                            return;
+                                                                    }
 
-            const output = await wllamaObj.createCompletion(formattedPrompt, {
-                nPredict: 50,
-                sampling: {
-                    temp: 0.7,
-                }
-            });
-            Android.onLog("Output: " + output);
-            Android.onMessageReceived(output);
-        } catch (e) {
-            Android.onLog("Generate Error: " + e.message);
-            Android.onMessageReceived("Error: " + e.message);
-        }
-    };
+                                                                    // Wait for at least 2 seconds of audio (2 * 16000 = 32000 samples)
+                                                                    if (audioBuffer.length < 32000) {
+                                                                        return;
+                                                                    }
 
-    init();
-</script>
+                                                                    if (isProcessing) {
+                                                                        Android.onLog("Skipping slice: Worker STT is already processing a previous chunk.");
+                                                                        return;
+                                                                    }
+
+                                                                    isProcessing = true;
+
+                                                                    // Take up to 2 seconds of audio max to avoid memory errors
+                                                                    const toProcessLength = Math.min(audioBuffer.length, 32000);
+
+                                                                    // Isolate processing memory from the main accumulator
+                                                                    const floatArrayToProcess = new Float32Array(audioBuffer.slice(0, toProcessLength));
+
+                                                                    // Discard the processed portion from the accumulator buffer
+                                                                    audioBuffer = new Float32Array(audioBuffer.slice(toProcessLength));
+
+                                                                    try {
+                                                                    Android.onLog("Posting audio chunk to worker, length: " + floatArrayToProcess.length);
+
+                                                                    // Transfer array buffer natively to avoid structured cloning limits overhead
+                                                                    worker.postMessage({
+                                                                        action: 'generate',
+                                                                        payload: floatArrayToProcess
+                                                                    }, [floatArrayToProcess.buffer]);
+
+                                                                } catch (e) {
+                                                                    Android.onLog("Transcribe Error: " + (e.message || e) + "\n" + (e.stack || ""));
+                                                                    isProcessing = false;
+                                                                }
+                                                                }, 5000); // Check every 5 seconds to give WASM breathing room.
+
+                                                                // Make functions available to Android bridge
+                                                                window.appInterface = {
+                                                                    initModel: initModel
+                                                            };
+
+                                                                    // Signal bridge is ready
+                                                                    Android.onLog("WebView index loaded, waiting for init");
+
+                                                                </script>
 </body>
-
 </html>

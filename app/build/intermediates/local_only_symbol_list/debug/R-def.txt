@@ -9,12 +9,13 @@ color teal_200
 color teal_700
 color user_msg_bg
 color white
-id buttonSend
-id editTextMessage
+id appBarLayout
 id hiddenWebView
-id linearLayout
 id recyclerView
 id textMessage
+id textViewSpeakNow
+id topAppBar
+id waveformView
 layout activity_main
 layout item_chat_message
 string app_name
